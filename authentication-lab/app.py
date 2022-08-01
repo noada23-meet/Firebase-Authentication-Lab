@@ -25,13 +25,25 @@ app.config['SECRET_KEY'] = 'super-secret-key'
 def signup():
     error = ""
     if request.method == 'POST':
-       email = request.form['email']
-       password = request.form['password']
-       try:
+
+        email = request.form['email']
+        password = request.form['password']
+        name = request.form['name']
+        username = request.form['username']
+        bio= request.form['bio']
+        try:
+
+
             login_session['user'] = auth.create_user_with_email_and_password(email, password)
+           
+            user = {"name": name, "email": email, "password":password,"username":username,"bio":bio}
+            db.child("Users").child(login_session['user']['localId']).set(user)
+
+
+
             return redirect(url_for('signin'))
-       except:
-           error = "Authentication failed"
+        except:
+            error = "Authentication failed"
     else:
         return render_template("signup.html")
 
@@ -55,7 +67,21 @@ def signin():
 
 @app.route('/add_tweet', methods=['GET', 'POST'])
 def add_tweet():
-    return render_template("add_tweet.html")
+    if request.method == 'POST':
+        try:
+            title = request.form['title']
+            tweet = request.form['tweet']
+            tweets={'title': title,'tweet': tweet}
+            db.child("tweets").push(tweet)
+            return redirect(url_for('signup'))
+
+        except:
+            error="sorry! couldn't post the tweet"
+            return render_template("add_tweet.html")
+
+    else:
+        error="got to GET method"
+        return render_template("add_tweet.html")
 
 
 if __name__ == '__main__':
